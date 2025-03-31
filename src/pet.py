@@ -1,18 +1,28 @@
 import curses
+from os import name
 import textwrap
 import time
 import sys
 from ascii.cat.cat import ascii as animation
+import argparse
+import csv
 
 animation_fps = 1
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--name", "-n", type=str, help="name of the pet to load. must be an existing pet")
+args = parser.parse_args()
+
+save_name = args.name
+
 class Pet:
-    def __init__(self, nombre):
+    def __init__(self, name, health=100, hunger=0):
+        self.name = name
+        self.health = health
+        self.hunger = hunger
+
         self.frame_counter = 0
 
-        self.nombre = nombre
-        self.salud = 100
-        self.hambre = 0
         self._last_update = time.time()
         self._last_frame_time = time.time()
 
@@ -21,29 +31,29 @@ class Pet:
         delta_time = now - self._last_update
         self._last_update = now
 
-        self.hambre += 0.03
-        self.salud -= 0.01
+        self.hunger += 0.03
+        self.health -= 0.01
 
-        self.hambre = max(0, min(100, self.hambre))
-        self.salud = max(0, min(100, self.salud))
+        self.hunger = max(0, min(100, self.hunger))
+        self.health = max(0, min(100, self.health))
 
-        # TODO - morir, etc
+        # todo - morir, etc
 
     def alimentar(self):
-        self.hambre -= 10
-        self.salud += 5
+        self.hunger -= 10
+        self.health += 5
 
     def jugar(self):
-        self.hambre += 5
-        self.salud += 10
+        self.hunger += 5
+        self.health += 10
 
-    def _aumentar_hambre(self):
+    def _aumentar_hunger(self):
         time.sleep(5)
-        self.hambre += 5
+        self.hunger += 5
 
 
 #    def mostrar_estado(self):
-#        return f"{self.nombre}:\nSalud: {round(self.salud)}/100\nHambre: {round(self.hambre)}/100"
+#        return f"{self.nombre}:\nSalud: {round(self.health)}/100\nHambre: {round(self.hunger)}/100"
 
 def render(stdscr, pet):
     """muestra el estado"""
@@ -55,7 +65,7 @@ def render(stdscr, pet):
         stdscr.addstr(i, 0, " " * (width-1))
 
     # mostrar el estado del Tamagotchi
-    stdscr.addstr(0, 0, f"{pet.nombre}:\nSalud: {round(pet.salud)}/100\nHambre: {round(pet.hambre)}/100")
+    stdscr.addstr(0, 0, f"{pet.name}:\nSalud: {round(pet.health)}/100\nHambre: {round(pet.hunger)}/100")
 
     # mostrar animacion del bicho
     animation_handler(stdscr, animation, animation_fps, pet)
@@ -103,7 +113,7 @@ def input_handler(stdscr, pet):
 
     key = stdscr.getch()
     if key == ord('q'):
-        exit_game()
+        exit_game(pet)
     elif key == ord('a'):
         pet.alimentar()
     elif key == ord('j'):
@@ -116,16 +126,32 @@ def input_handler(stdscr, pet):
 def exit_game(pet=None):
     """guarda el estado y sale del programa"""
     if pet:
-        save()
+        save(pet)
     sys.exit()
 
-def save():
-    # todo - guardar estado
-    pass
+def save(pet):
+    data = [
+            ["name", "health", "hunger"],
+            [pet.name, pet.health, pet.hunger]
+    ]
+
+    path = f"./save/{pet.name}.csv"
+
+    with open(path, mode="w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerows(data)
+
+def load_pet(name):
+    with open(f"./save/{name}.csv", mode="r") as file:
+        pet_csv = csv.reader(file)
+        pet_data = list(pet_csv)[-1]
+
+        name, health, hunger = pet_data
+        return name, int(float(health)), int(float(hunger))
 
 def main(stdscr):
-    # todo - cargar estado
-    pet = Pet("Tama")
+    name, health, hunger = load_pet(save_name)
+    pet = Pet(name, health, hunger)
     curses.curs_set(0)
     curses.start_color()
     curses.use_default_colors()
