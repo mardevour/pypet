@@ -47,16 +47,22 @@ class Pet:
 
 def render(stdscr, pet):
     """muestra el estado"""
-    stdscr.clear()
     # obtener el tamaño de la ventana
     height, width = stdscr.getmaxyx()
     
+    # limpiar lineas de estado
+    for i in range(3):
+        stdscr.addstr(i, 0, " " * (width-1))
+
     # mostrar el estado del Tamagotchi
     stdscr.addstr(0, 0, f"{pet.nombre}:\nSalud: {round(pet.salud)}/100\nHambre: {round(pet.hambre)}/100")
 
     # mostrar animacion del bicho
     animation_handler(stdscr, animation, animation_fps, pet)
-              
+
+    for i in range(1, 3):
+        if height - i >= 0:
+            stdscr.addstr(height - i, 0, " " * (width-1)) 
     # mostrar el mensaje en la parte inferior de la ventana
     tutorial = "'a': alimentar, 'j': jugar, 'q': salir."
     tutorial_wrapped = textwrap.wrap(tutorial, width)
