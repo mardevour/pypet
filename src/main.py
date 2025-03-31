@@ -91,10 +91,9 @@ def load_pet_menu(stdscr):
         elif key == ord("\n"):  # enter
             if pets_list_selection == 0:
                 break
-            elif pets_list_selection == 1:
+            else:
                 load_pet(pets_list_options[pets_list_selection])
                 stdscr.getch()
-            elif pets_list_selection == 2:
                 break
 
 def load_pet(name):
