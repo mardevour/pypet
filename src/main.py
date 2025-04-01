@@ -62,6 +62,11 @@ def load_pet_menu(stdscr):
     stdscr.refresh()
 
     save_dir = pathlib.Path("./save/")
+
+    #Create the dir if it doesnt exist
+    if not save_dir.exists():
+        save_dir.mkdir(parents=True, exist_ok=True)
+
     pets_saves = [file for file in save_dir.iterdir() if file.is_file()]
     for i in range(len(pets_saves)):
         pets_saves[i] = pets_saves[i].stem
