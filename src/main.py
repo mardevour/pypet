@@ -8,15 +8,16 @@ import subprocess
 
 title = "      /\\     /\\ \n     {  `---'  }\n     {  O   O  }\n╭────╮╭─╮╭─╮╭────╮╭────╮╭─╮\n│ ╭╮ ││ ││ ││ ╭╮ ││ ╭╮ ││ ╰─╮\n│ ╰╯ ││ ╰╯ ││ ╰╯ ││ ╰╯ ││ ╭─╯\n│ ╭──╯╰──╮ ││ ╭──╯│ ╭──╯│ │\n│ │   ╭──╯ ││ │   │ ╰──╮│ │\n╰─╯   ╰────╯╰─╯   ╰────╯╰─╯\n"
 
+
 def main(stdscr):
     curses.curs_set(0)
     curses.start_color()
     curses.use_default_colors()
     stdscr.clear()
-    
+
     main_menu_opciones = ["Nueva mascota", "Cargar mascota guardada", "Salir"]
     main_menu_seleccion = 0
-    
+
     while True:
         stdscr.clear()
         stdscr.addstr(1, 0, title)
@@ -25,12 +26,14 @@ def main(stdscr):
                 stdscr.addstr(f"> {option}\n", curses.A_REVERSE)
             else:
                 stdscr.addstr(f"  {option}\n")
-        
+
         key = stdscr.getch()
-        
+
         if key == curses.KEY_UP and main_menu_seleccion > 0:
             main_menu_seleccion -= 1
-        elif key == curses.KEY_DOWN and main_menu_seleccion < len(main_menu_opciones) - 1:
+        elif (
+            key == curses.KEY_DOWN and main_menu_seleccion < len(main_menu_opciones) - 1
+        ):
             main_menu_seleccion += 1
         elif key == ord("\n"):  # enter
             if main_menu_seleccion == 0:
@@ -41,20 +44,19 @@ def main(stdscr):
             elif main_menu_seleccion == 2:
                 break
 
-def new_pet(stdscr):
 
+def new_pet(stdscr):
     stdscr.clear()
     stdscr.addstr(1, 0, title)
     stdscr.addstr("> Elige un nombre:")
     stdscr.refresh()
 
     curses.echo()
-    name = stdscr.getstr(10,19,20).decode('utf-8')
+    name = stdscr.getstr(10, 19, 20).decode("utf-8")
     curses.noecho()
 
     create_pet(name)
     load_pet(name)
-
 
 
 def load_pet_menu(stdscr):
@@ -83,10 +85,12 @@ def load_pet_menu(stdscr):
 
         stdscr.refresh()
         key = stdscr.getch()
-        
+
         if key == curses.KEY_UP and pets_list_selection > 0:
             pets_list_selection -= 1
-        elif key == curses.KEY_DOWN and pets_list_selection < len(pets_list_options) - 1:
+        elif (
+            key == curses.KEY_DOWN and pets_list_selection < len(pets_list_options) - 1
+        ):
             pets_list_selection += 1
         elif key == ord("\n"):  # enter
             if pets_list_selection == 0:
@@ -96,22 +100,27 @@ def load_pet_menu(stdscr):
                 stdscr.getch()
                 break
 
+
 def load_pet(name):
     subprocess.run(f"python3 pet.py -n {name}", shell=True)
     sys.exit()
 
+
 def create_pet(name):
     # initial stats
-    data = [
-            ["name", "health", "hunger"],
-            [name, 75, 15]
-    ]
+    data = [["name", "health", "hunger"], [name, 75, 15]]
 
     path = f"./save/{name}.csv"
+
+    save_dir = pathlib.Path("./save/")
+
+    if not save_dir.exists():
+        save_dir.mkdir(parents=True, exist_ok=True)
 
     with open(path, mode="w", newline="") as file:
         writer = csv.writer(file)
         writer.writerows(data)
+
 
 if __name__ == "__main__":
     curses.wrapper(main)
